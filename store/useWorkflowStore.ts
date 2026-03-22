@@ -26,6 +26,7 @@ export interface WorkflowState {
   nodeExecutions: Record<string, NodeExecutionState>;
   isRunning: boolean;
   runId: string | null;
+  isHistoryOpen: boolean;
 }
 
 export interface WorkflowActions {
@@ -49,6 +50,7 @@ export interface WorkflowActions {
   clearExecutionState: () => void;
   setIsRunning: (running: boolean) => void;
   setRunId: (id: string | null) => void;
+  setIsHistoryOpen: (open: boolean) => void;
 }
 
 const initialState: WorkflowState = {
@@ -59,6 +61,7 @@ const initialState: WorkflowState = {
   nodeExecutions: {},
   isRunning: false,
   runId: null,
+  isHistoryOpen: false,
 };
 
 export const useWorkflowStore = create<WorkflowState & WorkflowActions>()(
@@ -114,6 +117,7 @@ export const useWorkflowStore = create<WorkflowState & WorkflowActions>()(
 
       setIsRunning: (running) => set({ isRunning: running }),
       setRunId: (id) => set({ runId: id }),
+      setIsHistoryOpen: (open) => set({ isHistoryOpen: open }),
     }),
     {
       // Only track nodes and edges for undo/redo, not execution state

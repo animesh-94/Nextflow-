@@ -1,12 +1,12 @@
 "use client";
 
-import { Save, Play, Share2, Moon, Loader2 } from "lucide-react";
+import { Save, Play, Share2, Moon, Loader2, History } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useWorkflowStore } from "@/store/useWorkflowStore";
 
 export function TopBar() {
   const workflowName = useWorkflowStore((s) => s.workflowName);
-  const { nodes, edges, workflowId, setWorkflowId, isRunning, runId } = useWorkflowStore();
+  const { nodes, edges, workflowId, setWorkflowId, isRunning, runId, isHistoryOpen, setIsHistoryOpen } = useWorkflowStore();
   const [saving, setSaving] = useState(false);
 
   const handleSave = useCallback(async () => {
@@ -139,6 +139,18 @@ export function TopBar() {
               <Play size={12} fill="currentColor" /> Run
             </>
           )}
+        </button>
+
+        <button
+          onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+          title="History"
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[12px] transition-all ${
+            isHistoryOpen
+              ? "bg-white/10 text-white border-white/20"
+              : "border-[#2a2a2a] text-zinc-400 hover:text-zinc-200 hover:border-[#3a3a3a]"
+          }`}
+        >
+          <History size={12} /> History
         </button>
 
         <button
