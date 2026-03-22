@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation"; // ✅ add this
 import Link from "next/link";
 import {
   User,
@@ -21,11 +21,14 @@ import { motion } from "framer-motion";
 
 export default function LandingPage() {
   const { isSignedIn, isLoaded } = useUser();
+  const router = useRouter(); // ✅ add this
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
-  if (isLoaded && isSignedIn) {
-    redirect("/workflow");
-  }
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push("/workflow");
+    }
+  }, [isLoaded, isSignedIn, router]);
 
   const plans = [
     {
