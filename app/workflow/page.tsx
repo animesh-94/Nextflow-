@@ -9,7 +9,8 @@ import { motion } from "framer-motion";
 // FIX: Added missing Link import
 import Link from "next/link";
 
-export default function WorkflowPage() {
+// Added type for Next.js 16 compatibility
+export default function WorkflowPage({ params, searchParams }: { params: Promise<any>, searchParams: Promise<any> }) {
   const { resetWorkflow, loadWorkflow, workflowId, setWorkflowName } = useWorkflowStore();
   const [showWelcome, setShowWelcome] = useState(false);
 

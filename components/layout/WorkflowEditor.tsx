@@ -5,6 +5,7 @@ import { useWorkflowStore } from "@/store/useWorkflowStore";
 import { LeftSidebar } from "./LeftSidebar";
 import { TopBar } from "./TopBar";
 import { FlowCanvas } from "../canvas/FlowCanvas";
+import { HistoryPanel } from "./HistoryPanel";
 
 export function WorkflowEditor() {
   const { undo, redo } = useWorkflowStore.temporal.getState();
@@ -32,6 +33,7 @@ export function WorkflowEditor() {
         </div>
         <main className="flex-1 relative overflow-hidden rounded-2xl border border-white/5 bg-[#0a0a0a] shadow-inner">
           <FlowCanvas />
+          <HistoryPanel />
         </main>
       </div>
     </div>

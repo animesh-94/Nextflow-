@@ -1,0 +1,30 @@
+﻿
+> nextflow@0.1.0 build
+> prisma generate && next build
+
+node.exe : Environment variables loaded 
+from .env
+At line:1 char:1
++ & "D:\Program Files\nodejs/node.exe" 
+"D:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecif 
+   ied: (Environment variables loaded   
+  from .env:String) [], RemoteExcepti   
+ on
+    + FullyQualifiedErrorId : NativeCom 
+   mandError
+ 
+Prisma schema loaded from prisma\schema.prisma
+
+Γ£ö Generated Prisma Client (v6.19.2) to .\node_modules\@prisma\client in 97ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+
+Γ¿» Unable to acquire lock at C:\Users\A
+NIMESH\Desktop\nextflow\.next\lock, is 
+another instance of next build running?
+  Suggestion: If you intended to restart next build, terminate the other process, and then try again.

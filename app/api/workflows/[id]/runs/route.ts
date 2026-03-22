@@ -1,54 +1,39 @@
+import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import type { NextRequest } from "next/server";
 
-// GET /api/workflows/[id]/runs
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export const dynamic = "force-dynamic";
+
+// GET /api/workflows/[id]/runs — fetch run history for a specific workflow
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  const { id } = await params;
-  const workflow = await prisma.workflow.findFirst({ where: { id, userId } });
-  if (!workflow) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const { id } = await context.params;
 
-  const runs = await prisma.run.findMany({
-    where: { workflowId: id },
-    orderBy: { startedAt: "desc" },
-    take: 50,
-    include: {
-      nodeExecutions: {
-        select: {
-          nodeId: true,
-          nodeType: true,
-          status: true,
-          startedAt: true,
-          finishedAt: true,
-          error: true,
-        },
+  try {
+    const runs = await prisma.run.findMany({
+      where: { 
+        workflowId: id,
+        workflow: { userId } // Ensure the workflow belongs to the user
       },
-    },
-  });
+      orderBy: { startedAt: "desc" },
+      include: {
+        _count: {
+          select: { nodeExecutions: true }
+        }
+      }
+    });
 
-  return NextResponse.json({ runs });
-}
-
-// POST /api/workflows/[id]/runs — create new run entry
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { id } = await params;
-  const workflow = await prisma.workflow.findFirst({ where: { id, userId } });
-  if (!workflow) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  const body = await req.json().catch(() => ({}));
-  const run = await prisma.run.create({
-    data: {
-      workflowId: id,
-      scope: body.scope || "full",
-      triggeredBy: userId,
-      status: "PENDING",
-    },
-  });
-  return NextResponse.json(run, { status: 201 });
+    return NextResponse.json(runs);
+  } catch (error) {
+    console.error("GET /api/workflows/[id]/runs error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }

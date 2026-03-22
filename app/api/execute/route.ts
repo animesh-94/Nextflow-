@@ -4,6 +4,8 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { workflowTask } from "@/trigger/workflowTask";
 
+export const dynamic = 'force-dynamic';
+
 const ExecuteSchema = z.object({
   workflowId: z.string(),
   scope: z.enum(["full", "node", "selection"]).default("full"),

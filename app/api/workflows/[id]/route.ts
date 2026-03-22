@@ -1,56 +1,87 @@
+import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import prisma from "@/lib/prisma";
+import type { NextRequest } from "next/server";
 
-const UpdateSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
-  description: z.string().optional(),
-  nodes: z.array(z.any()).optional(),
-  edges: z.array(z.any()).optional(),
-});
+export const dynamic = "force-dynamic";
 
-// GET /api/workflows/[id]
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+// GET /api/workflows/[id] — fetch a specific workflow
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  
-  const { id } = await params;
-  const workflow = await prisma.workflow.findFirst({ where: { id, userId } });
-  if (!workflow) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  return NextResponse.json(workflow);
+  const { id } = await context.params;
+
+  try {
+    const workflow = await prisma.workflow.findFirst({
+      where: { id, userId },
+    });
+
+    if (!workflow) {
+      return NextResponse.json({ error: "Workflow not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(workflow);
+  } catch (error) {
+    console.error("GET /api/workflows/[id] error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }
 
-// PUT /api/workflows/[id]
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+// PATCH /api/workflows/[id] — update a workflow
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  const { id } = await params;
-  const body = await req.json();
-  const parsed = UpdateSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.format() }, { status: 400 });
+  const { id } = await context.params;
 
-  const existing = await prisma.workflow.findFirst({ where: { id, userId } });
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  const updated = await prisma.workflow.update({
-    where: { id },
-    data: parsed.data,
-  });
-  return NextResponse.json(updated);
+  try {
+    const body = await request.json();
+    const workflow = await prisma.workflow.update({
+      where: { id, userId },
+      data: {
+        name: body.name,
+        description: body.description,
+        nodes: body.nodes,
+        edges: body.edges,
+      },
+    });
+    return NextResponse.json(workflow);
+  } catch (error) {
+    console.error("PATCH /api/workflows/[id] error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }
 
-// DELETE /api/workflows/[id]
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+// DELETE /api/workflows/[id] — delete a workflow
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  const { id } = await params;
-  const existing = await prisma.workflow.findFirst({ where: { id, userId } });
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const { id } = await context.params;
 
-  await prisma.workflow.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  try {
+    await prisma.workflow.delete({
+      where: { id, userId },
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/workflows/[id] error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
 }
