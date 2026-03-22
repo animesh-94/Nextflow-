@@ -28,9 +28,17 @@ export async function POST(req: Request) {
 
     const { nodeId, nodeType, data, inputData } = parsed.data;
 
+    const transloaditKey = process.env.TRANSLOADIT_KEY || process.env.NEXT_PUBLIC_TRANSLOADIT_KEY;
+    const transloaditSecret = process.env.TRANSLOADIT_SECRET;
+
+    if (!transloaditKey || !transloaditSecret) {
+      console.error("Transloadit credentials missing in environment");
+      return NextResponse.json({ error: "Configuration Error" }, { status: 500 });
+    }
+
     const transloadit = new Transloadit({
-      authKey: process.env.TRANSLOADIT_KEY!, // ✅ FIXED
-      authSecret: process.env.TRANSLOADIT_SECRET!,
+      authKey: transloaditKey,
+      authSecret: transloaditSecret,
     });
 
     // ================= CROP IMAGE =================

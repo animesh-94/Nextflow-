@@ -53,14 +53,20 @@ export async function POST(req: Request) {
       triggerHandle: handle.id
     });
   } catch (err: any) {
-    console.error("Failed to trigger workflow task:", err);
+    console.error("CRITICAL: Failed to trigger workflow task:", err);
+    console.error("Payload:", { workflowId, runId: run.id });
 
     // Fallback/Cleanup: Mark run as failed if trigger fails
     await prisma.run.update({
       where: { id: run.id },
       data: { status: "FAILED", finishedAt: new Date() }
-    }).catch(() => { });
+    }).catch((prismaErr: any) => { 
+      console.error("Failed to update Run status after trigger failure:", prismaErr);
+    });
 
-    return NextResponse.json({ error: "Failed to initiate execution" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Failed to initiate execution",
+      details: process.env.NODE_ENV === "development" ? err.message : undefined
+    }, { status: 500 });
   }
 }
