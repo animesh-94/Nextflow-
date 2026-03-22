@@ -8,6 +8,8 @@ import { useWorkflowStore } from "@/store/useWorkflowStore";
 
 const MODELS = [
   { id: "gemini-3.0-flash", label: "Gemini 3.0 Flash" },
+  { id: "gemini-3.0-pro", label: "Gemini 3.0 Pro" },
+  { id: "gemini-3.0-flash-8b", label: "Gemini 3.0 Flash-8b" },
 ];
 
 const getHandleStyle = (color: string) => ({

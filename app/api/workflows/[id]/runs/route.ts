@@ -25,9 +25,16 @@ export async function GET(
       },
       orderBy: { startedAt: "desc" },
       include: {
-        _count: {
-          select: { nodeExecutions: true }
-        }
+        nodeExecutions: {
+          select: {
+            nodeId: true,
+            nodeType: true,
+            status: true,
+            startedAt: true,
+            finishedAt: true,
+            error: true,
+          },
+        },
       }
     });
 
