@@ -90,7 +90,7 @@ export const workflowTask = task({
           const res = await llmTask.triggerAndWait({
             runId,
             nodeId: node.id,
-            model: nodeInputs.model || "gemini-2.0-flash",
+            model: nodeInputs.model || "gemini-3.0-flash",
             systemPrompt: nodeInputs.systemPrompt || "",
             userMessage: nodeInputs.userMessage || nodeInputs.text || "",
             imageUrls: Array.isArray(nodeInputs.images) ? nodeInputs.images : (nodeInputs.imageUrl ? [nodeInputs.imageUrl] : []),

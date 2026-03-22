@@ -21,7 +21,7 @@ export const llmTask = task({
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const geminiModel = genAI.getGenerativeModel({
-      model: model || "gemini-2.0-flash",
+      model: model || "gemini-3.0-flash",
       systemInstruction: systemPrompt || undefined,
     });
 

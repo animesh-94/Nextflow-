@@ -7,9 +7,7 @@ import { BaseNode } from "./BaseNode";
 import { useWorkflowStore } from "@/store/useWorkflowStore";
 
 const MODELS = [
-  { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
-  { id: "gemini-1.5-pro", label: "Gemini 1.5 Pro" },
-  { id: "gemini-1.5-flash-8b", label: "Gemini 1.5 Flash-8b" },
+  { id: "gemini-3.0-flash", label: "Gemini 3.0 Flash" },
 ];
 
 const getHandleStyle = (color: string) => ({
@@ -61,7 +59,7 @@ export function LLMNode({ id, data }: { id: string; data: any }) {
           nodeId: id,
           nodeType: "llmNode",
           data: {
-            model: data.model || "gemini-2.0-flash",
+            model: data.model || "gemini-3.0-flash",
             systemPrompt: data.systemPrompt || "",
             userMessage: data.userMessage || "",
             images: fallbackImages,
@@ -99,7 +97,7 @@ export function LLMNode({ id, data }: { id: string; data: any }) {
         <div className="space-y-1.5">
           <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider ml-1">Model Config</label>
           <select
-            value={data.model || "gemini-2.0-flash"}
+            value={data.model || "gemini-3.0-flash"}
             onChange={(e) => updateNodeData(id, { model: e.target.value })}
             className="w-full bg-[#050505] border border-white/5 rounded-xl px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/30 shadow-inner"
           >
