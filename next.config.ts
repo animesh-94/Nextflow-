@@ -2,15 +2,15 @@ import path from 'path';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Turbopack is stable in v16, move it to the top level
   turbopack: {
-    // Fixes the "absolute path" warning in Vercel/iad1 logs
-    root: path.resolve(__dirname),
+    root: path.resolve(__dirname), // Fixes the absolute path warning
   },
   experimental: {
     serverActions: {
       bodySizeLimit: '50mb',
     },
-    // Updated name for Next.js 16 Proxy architecture
+    // Updated name for the Proxy convention
     proxyClientMaxBodySize: '50mb',
   },
 };

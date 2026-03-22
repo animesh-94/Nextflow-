@@ -1,6 +1,7 @@
+// proxy.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Force Node.js runtime to fix the "unsupported modules" error
+// CRITICAL: Next.js 16 Proxy needs the Node.js runtime to handle Clerk's crypto
 export const runtime = 'nodejs';
 
 const isPublicRoute = createRouteMatcher([
@@ -11,20 +12,16 @@ const isPublicRoute = createRouteMatcher([
   "/api(.*)",
 ]);
 
-// Named export 'proxy' instead of 'middleware'
-export function proxy(auth: any, req: any) {
+// Use a named export 'proxy' or keep Clerk's default wrapper
+export default clerkMiddleware((auth, req) => {
   if (!isPublicRoute(req)) {
     auth().protect();
   }
-}
+});
 
-// Keep your config the same
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/(api|trpc)(.*)",
   ],
 };
-
-// Also keep the default export for compatibility with Clerk's wrapper
-export default clerkMiddleware(proxy);
