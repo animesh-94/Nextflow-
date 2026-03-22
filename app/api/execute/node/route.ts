@@ -1,10 +1,11 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Transloadit } from "transloadit";
-
-export const dynamic = 'force-dynamic';
 
 const ExecuteNodeSchema = z.object({
   nodeId: z.string(),
@@ -20,18 +21,29 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const parsed = ExecuteNodeSchema.safeParse(body);
-    if (!parsed.success) return NextResponse.json({ error: "Invalid Data" }, { status: 400 });
+
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid Data" }, { status: 400 });
+    }
 
     const { nodeId, nodeType, data, inputData } = parsed.data;
 
     const transloadit = new Transloadit({
-      authKey: process.env.NEXT_PUBLIC_TRANSLOADIT_KEY!,
+      authKey: process.env.TRANSLOADIT_KEY!, // ✅ FIXED
       authSecret: process.env.TRANSLOADIT_SECRET!,
     });
 
+    // ================= CROP IMAGE =================
     if (nodeType === "cropImageNode") {
-      const imageUrl = (inputData?.imageUrl as string) || (data.imageUrl as string) || (data.images?.[0] as string) || "";
-      if (!imageUrl) return NextResponse.json({ error: "Missing image URL" }, { status: 400 });
+      const imageUrl =
+        (inputData?.imageUrl as string) ||
+        (data.imageUrl as string) ||
+        (data.images?.[0] as string) ||
+        "";
+
+      if (!imageUrl) {
+        return NextResponse.json({ error: "Missing image URL" }, { status: 400 });
+      }
 
       try {
         const assembly = await transloadit.createAssembly({
@@ -39,7 +51,7 @@ export async function POST(req: Request) {
             steps: {
               import: {
                 robot: "/http/import",
-                url: imageUrl
+                url: imageUrl,
               },
               crop: {
                 use: "import",
@@ -48,26 +60,33 @@ export async function POST(req: Request) {
                   x1: `${data.x ?? 0}%`,
                   y1: `${data.y ?? 0}%`,
                   x2: `${(data.x ?? 0) + (data.width ?? 100)}%`,
-                  y2: `${(data.y ?? 0) + (data.height ?? 100)}%`
-                }
-              }
-            }
+                  y2: `${(data.y ?? 0) + (data.height ?? 100)}%`,
+                },
+              },
+            },
           },
-          waitForCompletion: true
+          waitForCompletion: true,
         });
 
         const croppedUrl = assembly.results?.crop?.[0]?.ssl_url;
-        if (!croppedUrl) throw new Error("Crop failed in assembly");
+
+        if (!croppedUrl) throw new Error("Crop failed");
+
         return NextResponse.json({ croppedImageUrl: croppedUrl });
-      } catch (err: any) {
-        console.error("Transloadit Crop Error:", err);
-        return NextResponse.json({ error: "Crop failed via Transloadit" }, { status: 500 });
+      } catch (err) {
+        console.error("Crop Error:", err);
+        return NextResponse.json({ error: "Crop failed" }, { status: 500 });
       }
     }
 
+    // ================= EXTRACT FRAME =================
     if (nodeType === "extractFrameNode") {
-      const videoUrl = (inputData?.videoUrl as string) || (data.videoUrl as string) || "";
-      if (!videoUrl) return NextResponse.json({ error: "Missing video URL" }, { status: 400 });
+      const videoUrl =
+        (inputData?.videoUrl as string) || (data.videoUrl as string) || "";
+
+      if (!videoUrl) {
+        return NextResponse.json({ error: "Missing video URL" }, { status: 400 });
+      }
 
       try {
         const assembly = await transloadit.createAssembly({
@@ -75,59 +94,121 @@ export async function POST(req: Request) {
             steps: {
               import: {
                 robot: "/http/import",
-                url: videoUrl
+                url: videoUrl,
               },
               extract: {
                 use: "import",
                 robot: "/video/thumbs",
                 count: 1,
-                offsets: [data.timestamp || "00:00:01"]
-              }
-            }
+                offsets: [data.timestamp || "00:00:01"],
+              },
+            },
           },
-          waitForCompletion: true
+          waitForCompletion: true,
         });
 
         const frameUrl = assembly.results?.extract?.[0]?.ssl_url;
-        if (!frameUrl) throw new Error("Frame extraction failed in assembly");
+
+        if (!frameUrl) throw new Error("Extraction failed");
+
         return NextResponse.json({ frameImageUrl: frameUrl });
-      } catch (err: any) {
-        console.error("Transloadit Extract Error:", err);
-        return NextResponse.json({ error: "Extraction failed via Transloadit" }, { status: 500 });
+      } catch (err) {
+        console.error("Extract Error:", err);
+        return NextResponse.json({ error: "Extraction failed" }, { status: 500 });
       }
     }
 
+    // ================= LLM NODE =================
     if (nodeType === "llmNode") {
-      const systemPrompt = (inputData?.systemPrompt as string) || (data.systemPrompt as string) || "";
-      const userMessage = (inputData?.userMessage as string) || (data.userMessage as string) || "Hello";
-      const imageUrls = (inputData?.images as string[]) || (data.images as string[]) || (data.imageUrl ? [data.imageUrl] : []);
+      const systemPrompt =
+        (inputData?.systemPrompt as string) ||
+        (data.systemPrompt as string) ||
+        "";
+
+      const userMessage =
+        (inputData?.userMessage as string) ||
+        (data.userMessage as string) ||
+        "Hello";
+
+      const imageUrls =
+        (inputData?.images as string[]) ||
+        (data.images as string[]) ||
+        (data.imageUrl ? [data.imageUrl] : []);
 
       try {
         const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-        if (!apiKey) return NextResponse.json({ error: "API Key Missing" }, { status: 500 });
+
+        if (!apiKey) {
+          return NextResponse.json(
+            { error: "API Key Missing" },
+            { status: 500 }
+          );
+        }
+
         const genAI = new GoogleGenerativeAI(apiKey);
-        const geminiModel = genAI.getGenerativeModel({ model: data.model || "gemini-2.0-flash", systemInstruction: systemPrompt || undefined });
+
+        const model = genAI.getGenerativeModel({
+          model: data.model || "gemini-2.0-flash",
+          systemInstruction: systemPrompt || undefined,
+        });
 
         const parts: any[] = [];
-        if (userMessage) parts.push({ text: userMessage });
+
+        if (userMessage) {
+          parts.push({ text: userMessage });
+        }
+
         for (const url of imageUrls.slice(0, 4)) {
           try {
             const imageRes = await fetch(url);
             const buffer = await imageRes.arrayBuffer();
-            parts.push({ inlineData: { mimeType: imageRes.headers.get("content-type") || "image/jpeg", data: Buffer.from(buffer).toString("base64") } });
-          } catch (e) { }
-        }
-        if (parts.length === 0) parts.push({ text: "Hello" });
 
-        const result = await geminiModel.generateContent({ contents: [{ role: "user", parts }] });
-        return NextResponse.json({ output: result.response.text() });
+            const base64 = Buffer.from(buffer).toString("base64"); // ✅ SAFE (Node runtime)
+
+            parts.push({
+              inlineData: {
+                mimeType:
+                  imageRes.headers.get("content-type") || "image/jpeg",
+                data: base64,
+              },
+            });
+          } catch (e) {
+            console.error("Image fetch failed:", e);
+          }
+        }
+
+        if (parts.length === 0) {
+          parts.push({ text: "Hello" });
+        }
+
+        const result = await model.generateContent({
+          contents: [{ role: "user", parts }],
+        });
+
+        return NextResponse.json({
+          output: result.response.text(),
+        });
       } catch (err: any) {
-        return NextResponse.json({ error: err.status === 429 ? "Rate limit reached." : err.message }, { status: err.status || 500 });
+        console.error("LLM Error:", err);
+
+        return NextResponse.json(
+          {
+            error:
+              err?.status === 429
+                ? "Rate limit reached"
+                : err?.message || "LLM failed",
+          },
+          { status: err?.status || 500 }
+        );
       }
     }
 
     return NextResponse.json({ output: "Success" });
   } catch (err) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Global Error:", err);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
