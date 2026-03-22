@@ -1,16 +1,18 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import path from 'path';
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
   turbopack: {
-    // Force the root to be the current directory
-    root: '.',
+    // Fixes the "absolute path" warning in Vercel/iad1 logs
+    root: path.resolve(__dirname),
   },
   experimental: {
     serverActions: {
       bodySizeLimit: '50mb',
     },
-    // Fix for 10MB body limit in middleware/API routes
-    middlewareClientMaxBodySize: 50 * 1024 * 1024,
+    // Updated name for Next.js 16 Proxy architecture
+    proxyClientMaxBodySize: '50mb',
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
