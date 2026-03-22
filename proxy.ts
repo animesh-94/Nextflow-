@@ -1,7 +1,5 @@
-// proxy.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// CRITICAL: Next.js 16 Proxy needs the Node.js runtime to handle Clerk's crypto
 export const runtime = 'nodejs';
 
 const isPublicRoute = createRouteMatcher([
@@ -12,10 +10,10 @@ const isPublicRoute = createRouteMatcher([
   "/api(.*)",
 ]);
 
-// Use a named export 'proxy' or keep Clerk's default wrapper
-export default clerkMiddleware((auth, req) => {
+export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
-    auth().protect();
+    // Await auth() to get the object that contains .protect()
+    await auth().protect();
   }
 });
 
