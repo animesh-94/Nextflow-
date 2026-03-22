@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"] // Only add this if you see a connection error live
 }
 
 datasource db {
