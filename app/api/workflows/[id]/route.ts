@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 
+export const dynamic = 'force-dynamic';
+
 const UpdateSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().optional(),
@@ -14,7 +16,7 @@ const UpdateSchema = z.object({
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  
+
   const { id } = await params;
   const workflow = await prisma.workflow.findFirst({ where: { id, userId } });
   if (!workflow) return NextResponse.json({ error: "Not found" }, { status: 404 });

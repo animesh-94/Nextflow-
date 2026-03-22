@@ -1,7 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 
 const prismaClientSingleton = () => {
-  return new PrismaClient();
+  // If we are building and the URL is missing, we pass an empty string 
+  // to prevent the "non-empty" constructor error, but keep the 
+  // actual DATABASE_URL for runtime.
+  return new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL || "postgres://dummy:dummy@localhost:5432/dummy"
+      }
+    }
+  } as any);
 };
 
 declare global {

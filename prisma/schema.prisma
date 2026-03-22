@@ -1,11 +1,9 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"] // Only add this if you see a connection error live
 }
 
 datasource db {
   provider = "postgresql"
-  // url = env("DATABASE_URL") <-- DELETE THIS LINE
 }
 
 model Workflow {

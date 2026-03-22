@@ -4,6 +4,8 @@ import { z } from "zod";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Transloadit } from "transloadit";
 
+export const dynamic = 'force-dynamic';
+
 const ExecuteNodeSchema = z.object({
   nodeId: z.string(),
   nodeType: z.string(),
@@ -30,7 +32,7 @@ export async function POST(req: Request) {
     if (nodeType === "cropImageNode") {
       const imageUrl = (inputData?.imageUrl as string) || (data.imageUrl as string) || (data.images?.[0] as string) || "";
       if (!imageUrl) return NextResponse.json({ error: "Missing image URL" }, { status: 400 });
-      
+
       try {
         const assembly = await transloadit.createAssembly({
           params: {
@@ -113,7 +115,7 @@ export async function POST(req: Request) {
             const imageRes = await fetch(url);
             const buffer = await imageRes.arrayBuffer();
             parts.push({ inlineData: { mimeType: imageRes.headers.get("content-type") || "image/jpeg", data: Buffer.from(buffer).toString("base64") } });
-          } catch (e) {}
+          } catch (e) { }
         }
         if (parts.length === 0) parts.push({ text: "Hello" });
 
@@ -123,7 +125,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: err.status === 429 ? "Rate limit reached." : err.message }, { status: err.status || 500 });
       }
     }
-    
+
     return NextResponse.json({ output: "Success" });
   } catch (err) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
