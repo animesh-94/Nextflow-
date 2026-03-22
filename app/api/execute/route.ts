@@ -10,6 +10,8 @@ const ExecuteSchema = z.object({
   nodeIds: z.array(z.string()).optional(),
 });
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/execute — trigger full workflow execution
 export async function POST(req: Request) {
   const { userId: authUserId } = await auth();
