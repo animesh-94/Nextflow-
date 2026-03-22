@@ -1,20 +1,20 @@
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string; runId: string }> }
+  req: Request,
+  { params }: { params: { id: string; runId: string } }
 ) {
+  // 🔥 ADD THIS HERE
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id, runId } = await context.params;
+  const { id, runId } = params;
 
   const workflow = await prisma.workflow.findFirst({
     where: { id, userId },
