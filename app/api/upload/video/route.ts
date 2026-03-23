@@ -5,6 +5,14 @@ import { writeFileSync, unlinkSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "60mb",
+    },
+  },
+};
+
 // POST /api/upload/video
 export async function POST(req: Request) {
   const { userId: authUserId } = await auth();

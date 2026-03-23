@@ -36,7 +36,20 @@ export function UploadVideoNode({ id, data }: { id: string; data: UploadVideoNod
       formData.append("file", file);
       formData.append("nodeId", id);
       const res = await fetch("/api/upload/video", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Upload failed");
+      
+      if (!res.ok) {
+        if (res.status === 413) {
+          throw new Error("File is too large (Max 50MB)");
+        }
+        
+        try {
+          const data = await res.json();
+          throw new Error(data.error || "Upload failed");
+        } catch (e) {
+          throw new Error("Upload failed");
+        }
+      }
+      
       const { url } = await res.json();
       updateNodeData(id, { videoUrl: url, fileName: file.name });
     } catch (err: unknown) {

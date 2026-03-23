@@ -7,9 +7,9 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: "50mb",
+      bodySizeLimit: "60mb",
     },
-    proxyClientMaxBodySize: "50mb",
+    proxyClientMaxBodySize: "60mb",
   },
 };
 
