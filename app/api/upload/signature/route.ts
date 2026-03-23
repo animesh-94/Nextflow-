@@ -26,7 +26,12 @@ export async function POST() {
     steps: {
       encode: {
         robot: "/video/encode",
-        preset: "iphone",
+        preset: "empty",
+        ffmpeg_stack: "v6.0",
+        ffmpeg: {
+          vcodec: "copy",
+          acodec: "copy"
+        }
       },
     },
   });

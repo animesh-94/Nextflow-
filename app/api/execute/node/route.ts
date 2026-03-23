@@ -108,21 +108,27 @@ export async function POST(req: Request) {
                 use: "import",
                 robot: "/video/thumbs",
                 count: 1,
-                offsets: [data.timestamp || "00:00:01"],
+                offsets: [String(data.timestamp || "00:00:01")],
               },
             },
           },
           waitForCompletion: true,
         });
 
+        if (assembly.error) {
+          throw new Error(`Transloadit Error: ${assembly.error} - ${assembly.message}`);
+        }
+
         const frameUrl = assembly.results?.extract?.[0]?.ssl_url;
 
-        if (!frameUrl) throw new Error("Extraction failed");
+        if (!frameUrl) {
+          throw new Error(`Extraction failed. Assembly status: ${assembly.ok}. Results: ${JSON.stringify(assembly.results || {})}`);
+        }
 
         return NextResponse.json({ frameImageUrl: frameUrl });
-      } catch (err) {
+      } catch (err: any) {
         console.error("Extract Error:", err);
-        return NextResponse.json({ error: "Extraction failed" }, { status: 500 });
+        return NextResponse.json({ error: err.message || "Extraction failed" }, { status: 500 });
       }
     }
 

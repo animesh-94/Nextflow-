@@ -50,16 +50,22 @@ export function ExtractFrameNode({ id, data }: { id: string; data: ExtractFrameN
         }),
       });
       const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || "Execution failed");
+      }
+
       if (result.frameImageUrl) {
         updateNodeData(id, { frameImageUrl: result.frameImageUrl });
       }
+
       setNodeExecution(id, {
-        status: res.ok ? "completed" : "failed",
+        status: "completed",
         result: result.frameImageUrl,
         finishedAt: Date.now(),
       });
-    } catch (err) {
-      setNodeExecution(id, { status: "failed", error: String(err) });
+    } catch (err: any) {
+      setNodeExecution(id, { status: "failed", error: err.message || String(err) });
     } finally {
       setRunning(false);
     }
