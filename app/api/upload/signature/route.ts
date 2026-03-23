@@ -22,16 +22,11 @@ export async function POST() {
   const params = JSON.stringify({
     auth: { key: authKey, expires },
     template_id: undefined,
-    wait: true, // Tell Transloadit to wait until the encoding is finished before responding
+    wait: true, // Tell Transloadit to wait until the upload is finished before responding
     steps: {
-      encode: {
-        robot: "/video/encode",
-        preset: "empty",
-        ffmpeg_stack: "v6.0",
-        ffmpeg: {
-          vcodec: "copy",
-          acodec: "copy"
-        }
+      filter: {
+        robot: "/file/filter",
+        accepts: [["${file.mime}", "regex", "video/.*"]]
       },
     },
   });
