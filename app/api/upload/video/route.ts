@@ -8,7 +8,7 @@ import { tmpdir } from "os";
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: "60mb",
+      sizeLimit: "120mb",
     },
   },
 };
@@ -29,9 +29,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid file type. Allowed: MP4, MOV, WebM, M4V" }, { status: 400 });
     }
 
-    // Size limit: 50MB
-    if (file.size > 50 * 1024 * 1024) {
-      return NextResponse.json({ error: "File too large. Max 50MB" }, { status: 400 });
+    // Size limit: 100MB
+    if (file.size > 100 * 1024 * 1024) {
+      return NextResponse.json({ error: "File too large. Max 100MB" }, { status: 400 });
     }
 
     // Transloadit implementation

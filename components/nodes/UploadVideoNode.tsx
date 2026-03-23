@@ -39,7 +39,7 @@ export function UploadVideoNode({ id, data }: { id: string; data: UploadVideoNod
       
       if (!res.ok) {
         if (res.status === 413) {
-          throw new Error("File is too large (Max 50MB)");
+          throw new Error("File is too large (Max 100MB)");
         }
         
         try {
