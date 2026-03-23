@@ -29,29 +29,47 @@ export function UploadVideoNode({ id, data }: { id: string; data: UploadVideoNod
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Client-side quick check
+    if (file.size > 100 * 1024 * 1024) {
+      setError("File is too large (Max 100MB)");
+      return;
+    }
+
     setUploading(true);
     setError(null);
+
     try {
+      // 1. Get Signature & Params from our backend
+      const sigRes = await fetch("/api/upload/signature", { method: "POST" });
+      if (!sigRes.ok) throw new Error("Could not authorize upload");
+      const { params, signature } = await sigRes.json();
+
+      // 2. Upload directly to Transloadit
       const formData = new FormData();
+      formData.append("params", params);
+      formData.append("signature", signature);
       formData.append("file", file);
-      formData.append("nodeId", id);
-      const res = await fetch("/api/upload/video", { method: "POST", body: formData });
+
+      // We use api2.transloadit.com and set wait=true in params to get results back
+      const res = await fetch("https://api2.transloadit.com/assemblies", { 
+        method: "POST", 
+        body: formData 
+      });
       
       if (!res.ok) {
-        if (res.status === 413) {
-          throw new Error("File is too large (Max 100MB)");
-        }
-        
-        try {
-          const data = await res.json();
-          throw new Error(data.error || "Upload failed");
-        } catch (e) {
-          throw new Error("Upload failed");
-        }
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Direct upload to Transloadit failed");
       }
       
-      const { url } = await res.json();
-      updateNodeData(id, { videoUrl: url, fileName: file.name });
+      const assembly = await res.json();
+      
+      // Since we didn't specify waitForCompletion: true in server params (browser handles it differently), 
+      // we might need to pole if it's not immediate, but standard Transloadit /assemblies handles moderate files well.
+      // For immediate response, the params we generated should ideally have "wait": true.
+      
+      const videoUrl = assembly.results?.encode?.[0]?.ssl_url || assembly.assembly_ssl_url;
+      updateNodeData(id, { videoUrl, fileName: file.name });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
