@@ -26,7 +26,7 @@ export async function POST() {
     steps: {
       filter: {
         robot: "/file/filter",
-        accepts: [["${file.mime}", "regex", "video/.*"]]
+        accepts: [["${file.size}", ">", "0"]]
       },
     },
   });
