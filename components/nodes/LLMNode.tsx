@@ -100,14 +100,14 @@ export function LLMNode({ id, data }: { id: string; data: any }) {
   const isSocialPost = data.result && (data.result.length < 280 || data.result.includes("#"));
 
   return (
-    <BaseNode id={id} nodeType="llmNode" title="Gemini AI Engine" icon={<Cpu size={12} />} accentColor={accentColor} minWidth={300}>
+    <BaseNode id={id} nodeType="llmNode" title="Gemini AI" icon={<Cpu size={12} />} accentColor={accentColor} minWidth={180}>
       <div className="absolute -left-[6px] top-0 bottom-0 flex flex-col justify-around py-8 z-20">
         <Handle type="target" position={Position.Left} id="systemPrompt" style={getHandleStyle("#fbbf24")} />
         <Handle type="target" position={Position.Left} id="userMessage" style={getHandleStyle("#a855f7")} />
         <Handle type="target" position={Position.Left} id="images" style={getHandleStyle("#3b82f6")} />
       </div>
       
-      <div className="flex flex-col gap-3.5 mt-2">
+      <div className="flex flex-col gap-3.5 mt-2 w-full max-w-[148px]">
         <div className="space-y-1.5 w-full relative" ref={dropdownRef}>
           <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider ml-1">Model Config</label>
           <div
@@ -175,9 +175,26 @@ export function LLMNode({ id, data }: { id: string; data: any }) {
               </div>
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
             </div>
-            <div className="text-[12px] text-zinc-200 leading-relaxed font-medium whitespace-pre-wrap selection:bg-purple-500/30">
-              {data.result}
+            <div className="max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+              <div className="text-[12px] text-zinc-200 leading-relaxed font-medium whitespace-pre-wrap selection:bg-purple-500/30">
+                {data.result}
+              </div>
             </div>
+            <style jsx>{`
+              .custom-scrollbar::-webkit-scrollbar {
+                width: 4px;
+              }
+              .custom-scrollbar::-webkit-scrollbar-track {
+                background: transparent;
+              }
+              .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: rgba(168, 85, 247, 0.2);
+                border-radius: 10px;
+              }
+              .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: rgba(168, 85, 247, 0.4);
+              }
+            `}</style>
           </div>
         )}
       </div>
