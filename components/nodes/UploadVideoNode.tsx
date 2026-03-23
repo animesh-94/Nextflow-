@@ -68,7 +68,12 @@ export function UploadVideoNode({ id, data }: { id: string; data: UploadVideoNod
       // we might need to pole if it's not immediate, but standard Transloadit /assemblies handles moderate files well.
       // For immediate response, the params we generated should ideally have "wait": true.
       
-      const videoUrl = assembly.results?.encode?.[0]?.ssl_url || assembly.assembly_ssl_url;
+      const videoUrl = assembly.results?.encode?.[0]?.ssl_url;
+      
+      if (!videoUrl) {
+        throw new Error("Transloadit processed the upload but failed to generate a playable video URL.");
+      }
+      
       updateNodeData(id, { videoUrl, fileName: file.name });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Upload failed");

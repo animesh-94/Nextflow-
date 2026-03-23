@@ -123,7 +123,7 @@ export async function POST(req: Request) {
         const frameUrl = assembly.results?.extract?.[0]?.ssl_url;
 
         if (!frameUrl) {
-          throw new Error(`Extraction failed. Assembly status: ${assembly.ok}. Results: ${JSON.stringify(assembly.results || {})}`);
+          throw new Error(`Frame extraction yielded 0 results. The video might be shorter than the requested timestamp (${data.timestamp || "00:00:01"}).`);
         }
 
         return NextResponse.json({ frameImageUrl: frameUrl });
