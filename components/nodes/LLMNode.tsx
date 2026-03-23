@@ -1,14 +1,14 @@
 "use client";
 
 import { Handle, Position } from "reactflow";
-import { Bot, Play, Loader2, Sparkles, Cpu } from "lucide-react";
-import { useState } from "react";
+import { Bot, Play, Loader2, Sparkles, Cpu, ChevronDown, Check } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { BaseNode } from "./BaseNode";
 import { useWorkflowStore } from "@/store/useWorkflowStore";
 
 const MODELS = [
-  { id: "gemini-3.0-flash", label: "Gemini 3.0 Flash" },
-  { id: "gemini-3.0-pro", label: "Gemini 3.0 Pro" },
+  { id: "gemini-3-flash-preview", label: "Gemini 3.0 Flash" },
+  { id: "gemini-3.1-pro-preview", label: "Gemini 3.1 Pro" },
   { id: "gemini-3.0-flash-8b", label: "Gemini 3.0 Flash-8b" },
 ];
 
@@ -23,7 +23,19 @@ const getHandleStyle = (color: string) => ({
 export function LLMNode({ id, data }: { id: string; data: any }) {
   const { updateNodeData, setNodeExecution } = useWorkflowStore();
   const [running, setRunning] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const accentColor = "#a855f7";
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleRunNode = async () => {
     if (running) return;
@@ -61,7 +73,7 @@ export function LLMNode({ id, data }: { id: string; data: any }) {
           nodeId: id,
           nodeType: "llmNode",
           data: {
-            model: data.model || "gemini-3.0-flash",
+            model: data.model || "gemini-3-flash-preview",
             systemPrompt: data.systemPrompt || "",
             userMessage: data.userMessage || "",
             images: fallbackImages,
@@ -96,15 +108,47 @@ export function LLMNode({ id, data }: { id: string; data: any }) {
       </div>
       
       <div className="flex flex-col gap-3.5 mt-2">
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 w-full relative" ref={dropdownRef}>
           <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider ml-1">Model Config</label>
-          <select
-            value={data.model || "gemini-3.0-flash"}
-            onChange={(e) => updateNodeData(id, { model: e.target.value })}
-            className="w-full bg-[#050505] border border-white/5 rounded-xl px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/30 shadow-inner"
+          <div
+            onClick={(e) => {
+              // Only toggle if dragging is not an issue, but standard onClick is fine
+              setIsDropdownOpen(!isDropdownOpen);
+            }}
+            className="w-full bg-[#050505] border border-white/10 hover:border-white/20 rounded-xl px-3 py-2 text-zinc-200 text-xs focus:outline-none focus:border-purple-500/50 shadow-inner flex justify-between items-center cursor-pointer transition-colors"
           >
-            {MODELS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
-          </select>
+            <div className="flex items-center gap-2">
+              <Sparkles size={12} className="text-purple-400" />
+              <span>{MODELS.find(m => m.id === (data.model || "gemini-3-flash-preview"))?.label || "Select Model"}</span>
+            </div>
+            <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+          </div>
+
+          {isDropdownOpen && (
+            <div className="absolute z-50 w-full mt-1 bg-[#0a0a0a]/95 border border-white/10 rounded-xl shadow-2xl py-1.5 backdrop-blur-xl">
+              {MODELS.map((m) => {
+                const isSelected = (data.model || 'gemini-3-flash-preview') === m.id;
+                return (
+                  <div
+                    key={m.id}
+                    className={`px-3 py-2 text-xs cursor-pointer flex items-center justify-between transition-colors
+                      ${isSelected 
+                        ? 'bg-purple-500/10 text-purple-300' 
+                        : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200'
+                      }
+                    `}
+                    onClick={() => {
+                      updateNodeData(id, { model: m.id });
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    <span className="font-medium tracking-wide">{m.label}</span>
+                    {isSelected && <Check size={12} className="text-purple-400" />}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <button
