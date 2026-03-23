@@ -49,21 +49,24 @@ export function ExtractFrameNode({ id, data }: { id: string; data: ExtractFrameN
           }
         }),
       });
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.error || "Execution failed");
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const result = await res.json();
+        if (!res.ok) {
+          throw new Error(result.error || "Execution failed");
+        }
+        if (result.frameImageUrl) {
+          updateNodeData(id, { frameImageUrl: result.frameImageUrl });
+        }
+        setNodeExecution(id, {
+          status: "completed",
+          result: result.frameImageUrl,
+          finishedAt: Date.now(),
+        });
+      } else {
+        const text = await res.text();
+        throw new Error(`Server Error (${res.status}): The extraction took too long or failed on Vercel. ${res.status === 504 ? "Timeout exceeded." : ""}`);
       }
-
-      if (result.frameImageUrl) {
-        updateNodeData(id, { frameImageUrl: result.frameImageUrl });
-      }
-
-      setNodeExecution(id, {
-        status: "completed",
-        result: result.frameImageUrl,
-        finishedAt: Date.now(),
-      });
     } catch (err: any) {
       setNodeExecution(id, { status: "failed", error: err.message || String(err) });
     } finally {

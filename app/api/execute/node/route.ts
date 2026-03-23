@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // Allow up to 60 seconds on Vercel
 
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
